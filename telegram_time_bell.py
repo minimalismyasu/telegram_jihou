@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import json
 import os
 from datetime import datetime
-from zoneinfo import ZoneInfo
 from urllib.request import Request, urlopen
-import json
+from zoneinfo import ZoneInfo
 
 
 TOKYO = ZoneInfo("Asia/Tokyo")
@@ -42,7 +42,7 @@ def build_message(now: datetime | None = None) -> str:
 
 def main() -> int:
     if not telegram_enabled():
-        print("TELEGRAM_BOT_TOKEN か TELEGRAM_CHAT_ID が未設定です。")
+        print("TELEGRAM_BOT_TOKEN と TELEGRAM_CHAT_ID を設定してください")
         return 1
 
     message = build_message()
