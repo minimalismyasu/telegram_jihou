@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 from datetime import datetime
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
 
@@ -31,8 +32,15 @@ def send_telegram(message: str) -> None:
         headers={"Content-Type": "application/json"},
         method="POST",
     )
-    with urlopen(request, timeout=30) as response:
-        response.read()
+    try:
+        with urlopen(request, timeout=30) as response:
+            response.read()
+    except HTTPError as exc:
+        if exc.code == 401:
+            raise RuntimeError(
+                "Telegram bot token is unauthorized. Check TELEGRAM_BOT_TOKEN."
+            ) from exc
+        raise
 
 
 def build_message(now: datetime | None = None) -> str:
@@ -42,11 +50,16 @@ def build_message(now: datetime | None = None) -> str:
 
 def main() -> int:
     if not telegram_enabled():
-        print("TELEGRAM_BOT_TOKEN と TELEGRAM_CHAT_ID を設定してください")
+        print("Set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID.")
         return 1
 
     message = build_message()
-    send_telegram(message)
+    try:
+        send_telegram(message)
+    except RuntimeError as exc:
+        print(str(exc))
+        return 1
+
     print(message)
     return 0
 
